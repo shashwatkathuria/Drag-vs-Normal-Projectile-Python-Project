@@ -4,6 +4,9 @@ Created on Sat Apr 21 20:53:22 2018
 
 @author: Shashwat Kathuria
 """
+
+# DRAG V/S NORMAL PROJECTILE
+
 import math
 import pylab as plt
 
