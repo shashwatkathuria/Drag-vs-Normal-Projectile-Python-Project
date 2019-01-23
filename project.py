@@ -174,22 +174,48 @@ def normalProjectile(yInitialVelocityComponent, xInitialVelocityComponent, coeff
                in separate lists until the trajectory tends to be very close to the ground.
 
             '''
-            y = 0.0
-            x = 0.0
-            X = 0.0
+
+            # Initializing values required to zeros and empty lists
+            yInstantaneous = 0.0
+            xInstantaneous = 0.0
+            Range = 0.0
             xAxisCoordinates = []
             yAxisCoordinates = []
+            originShift = 0.0
+
+            # Running loop and storing trajectory coordinates until negligible
+
             while yInitialVelocityComponent > 0.001 and coefficientOfRestitution < 1:
-                T = ( 2 * yInitialVelocityComponent ) / 9.8
-                t1 = T / 10000
+
+                # Calculating the total time taken in the current bounce
+                totalTimeOfOneBounce = ( 2 * yInitialVelocityComponent ) / 9.8
+
+                # Setting time interval (dt) to be small enough
+                timeInterval = totalTimeOfOneBounce / 10000
+
+                # Running loop and calculating values for all time intervals of current bounce
                 for i in range(10000):
-                    y = yInitialVelocityComponent * i * t1 - ( (0.5) * (9.8) * ( (i * t1) ** 2 ) )
-                    x = ( xInitialVelocityComponent * i * t1 ) + X
-                    xAxisCoordinates.append(x)
-                    yAxisCoordinates.append(y)
-                X += (2 * yInitialVelocityComponent * xInitialVelocityComponent) / 9.8
+
+                    # Calculating y value according to formula
+                    yInstantaneous = yInitialVelocityComponent * i * timeInterval - ( (0.5) * (9.8) * ( (i * timeInterval) ** 2 ) )
+
+                    # Calculating y value according to formula
+                    xInstantaneous = ( xInitialVelocityComponent * i * timeInterval ) + originShift
+
+                    # Appending coordinates to respective lists
+                    xAxisCoordinates.append(xInstantaneous)
+                    yAxisCoordinates.append(yInstantaneous)
+
+                # Computing origin shift for next iteration, which is the range obtained till now
+                originShift = xAxisCoordinates[-1]
+
+                # Computing reduced y velocity component for next bounce
                 yInitialVelocityComponent = coefficientOfRestitution * yInitialVelocityComponent
-            return (xAxisCoordinates, yAxisCoordinates, X)
+
+            # Range is the last (biggest) value of the x axis coordinates obtained
+            Range = xAxisCoordinates[-1]
+            # Returning values
+            return (xAxisCoordinates, yAxisCoordinates, Range)
 
 
 
@@ -200,39 +226,67 @@ def dragProjectile(yInitialVelocityComponent, xInitialVelocityComponent, coeffic
                restitution,drag coefficient and mass of the particle and then computes
                the x and corresponding y values and stores them in separate lists until the
                trajectory tends to be very close to the ground.
-
             '''
 
-            y = 0.0
-            x = 0.0
-            X = 0.0
+            # Initializing values required to zeros and empty lists
+            yInstantaneous = 0.0
+            xInstantaneous = 0.0
+            Range = 0.0
             xAxisCoordinates = []
             yAxisCoordinates = []
-            yo = []
-            n = 1
+            currentBounceYAxisCoordinates = []
+
+            # n = 1
             while yInitialVelocityComponent > 0.01 and xInitialVelocityComponent > 0.01 and coefficientOfRestitution <= 1:
+
+                # Time interval number
                 i = 1
-                z = X
-                yo = []
+
+                # Setting origin shift to be range
+                originShift = Range
+
+                # Setting y coordinates of current bouonce to be an empty list
+                # To be used for terminating program when height obtained is negligible
+                currentBounceYAxisCoordinates = []
+
+                # Running loop and computing and storing information required
                 while True:
+
+                    # Setting time interval (dt) to be 0.001 seconds
                     dt = 0.001
-                    y = ( (massOfParticle * yInitialVelocityComponent) / dragCoefficient ) * ( 1 - math.exp( - ( (dragCoefficient / massOfParticle) * (i * dt) ) ) ) - ( ( massOfParticle * 9.8) / dragCoefficient ) * ( (i * dt) - ( massOfParticle / dragCoefficient ) * ( 1 - math.exp( - ( ( dragCoefficient / massOfParticle ) * (i * dt ) ) ) ) )
-                    x = ( (massOfParticle*xInitialVelocityComponent) / dragCoefficient) * (1 - math.exp( - ( (dragCoefficient * (i * dt)) / massOfParticle ) ) ) + X
-                    xAxisCoordinates.append(x)
-                    yAxisCoordinates.append(y)
-                    yo.append(y)
+
+                    # Calculating y value according to formula
+                    yInstantaneous = ( (massOfParticle * yInitialVelocityComponent) / dragCoefficient ) * ( 1 - math.exp( - ( (dragCoefficient / massOfParticle) * (i * dt) ) ) ) - ( ( massOfParticle * 9.8) / dragCoefficient ) * ( (i * dt) - ( massOfParticle / dragCoefficient ) * ( 1 - math.exp( - ( ( dragCoefficient / massOfParticle ) * (i * dt ) ) ) ) )
+
+                    # Calculating y value according to formula
+                    xInstantaneous = ( (massOfParticle*xInitialVelocityComponent) / dragCoefficient) * (1 - math.exp( - ( (dragCoefficient * (i * dt)) / massOfParticle ) ) ) + Range
+
+                    # Appending coordinates to respective lists
+                    xAxisCoordinates.append(xInstantaneous)
+                    yAxisCoordinates.append(yInstantaneous)
+                    currentBounceYAxisCoordinates.append(yInstantaneous)
+
+                    # Incrementing time interval to next time interval
                     i += 1
-                    if max(yo) < 0.005 or (y < 0.005 and i > 100):
+
+                    # Terminating if height obtained is negligible but only enough bounces
+                    if max(currentBounceYAxisCoordinates) < 0.005 or (yInstantaneous < 0.005 and i > 100):
                         t = i * dt
-                        X += x
+                        Range += xInstantaneous
                         break
-                n += 1
+
+                # Computing modified x and y axis velocity components according to formulas
                 yInitialVelocityComponent = math.fabs(coefficientOfRestitution * (   (( - ( (massOfParticle * 9.8) / dragCoefficient ) ) * (1 - math.exp( - ( (dragCoefficient / massOfParticle) * t ) ) )) + yInitialVelocityComponent * math.exp( - ( (dragCoefficient / massOfParticle) * t ) ) )   )
                 xInitialVelocityComponent = xInitialVelocityComponent * math.exp( -( (dragCoefficient / massOfParticle) * t) )
-                if n >= 2:
-                    X -= z
-                    z = X
-                    dragRange = x
+
+                # Updating origin shift
+                Range -= originShift
+                originShift = Range
+
+            # Range is the last (biggest) value of the x axis coordinates obtained
+            dragRange = xAxisCoordinates[-1]
+
+            # Returning values
             return (xAxisCoordinates, yAxisCoordinates, dragRange)
 
 
