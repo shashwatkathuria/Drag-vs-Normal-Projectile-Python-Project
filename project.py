@@ -118,7 +118,7 @@ def showGraph():
             Function to show the graphs/plots.
         """
 
-        plt.show()
+        plt.savefig('result.jpg')
 
 def plotNormalProjectile(xAxisCoordinates, yAxisCoordinates):
              '''
